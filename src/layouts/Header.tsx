@@ -1,12 +1,24 @@
 import React from 'react';
 import { Search, Bell, Menu, Sparkles } from 'lucide-react';
-import { mockSalonOwner } from '../lib/mockData';
+import { useAuth } from '../contexts/useAuth';
 
 interface HeaderProps {
   onOpenMobileMenu: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
+  const { user, profile } = useAuth();
+
+  const ownerName =
+    profile?.full_name ||
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')[0] ||
+    'Salon Director';
+
+  const roleLabel = profile?.role === 'owner' ? 'Owner & Studio Director' : 'Salon Personnel';
+  const salonName = import.meta.env.VITE_APP_NAME || 'StyleSalon CRM';
+  const initial = ownerName.charAt(0).toUpperCase();
+
   return (
     <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 sm:px-8 backdrop-blur-md transition-all">
       {/* Left: Mobile trigger & Search */}
@@ -34,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         {/* Salon Status Badge */}
         <div className="hidden md:flex items-center gap-2 rounded-full bg-salon-50 px-3 py-1 text-xs font-semibold text-salon-700 border border-salon-100">
           <Sparkles className="h-3.5 w-3.5 text-salon-500" />
-          <span>{mockSalonOwner.salonName}</span>
+          <span>{salonName}</span>
         </div>
 
         {/* Notifications */}
@@ -44,10 +56,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             aria-label="View notifications"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute top-2 right-2 flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-salon-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-salon-500"></span>
-            </span>
           </button>
         </div>
 
@@ -57,20 +65,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         {/* Salon Owner Avatar & Info */}
         <div className="flex items-center gap-3 pl-1">
           <div className="relative">
-            <img
-              src={mockSalonOwner.avatarUrl}
-              alt={mockSalonOwner.name}
-              className="h-10 w-10 rounded-full object-cover ring-2 ring-salon-200 shadow-sm"
-            />
+            <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-salon-600 to-rose-400 text-white font-serif font-bold text-sm flex items-center justify-center ring-2 ring-salon-200 shadow-sm">
+              {initial}
+            </div>
             <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white" />
           </div>
 
           <div className="hidden sm:block text-left">
             <p className="text-sm font-bold text-slate-900 leading-tight">
-              {mockSalonOwner.name}
+              {ownerName}
             </p>
             <p className="text-xs text-slate-500 font-medium leading-normal">
-              Owner & Lead Stylist
+              {roleLabel}
             </p>
           </div>
         </div>

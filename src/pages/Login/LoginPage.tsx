@@ -1,39 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Eye, EyeOff, Lock, Mail, CheckCircle2, ShieldCheck, Heart } from 'lucide-react';
+import { Sparkles, Eye, EyeOff, Lock, Mail, CheckCircle2, ShieldCheck, Heart, AlertCircle } from 'lucide-react';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { mockSalonOwner } from '../../lib/mockData';
+import { useAuth } from '../../contexts/useAuth';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { signIn, user, loading: authLoading, isConfigured } = useAuth();
 
-  const [email, setEmail] = useState('elena@lumierestudio.com');
-  const [password, setPassword] = useState('••••••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [forgotPasswordMessage, setForgotPasswordMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // If already authenticated, redirect to /dashboard
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, authLoading, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+    setForgotPasswordMessage(null);
+
+    if (!email.trim()) {
+      setErrorMessage('Please enter your email address.');
+      return;
+    }
+
+    if (!password) {
+      setErrorMessage('Please enter your password.');
+      return;
+    }
+
     setIsLoading(true);
 
-    // Frontend authentication simulation for Phase 1
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await signIn(email, password);
       navigate('/dashboard');
-    }, 600);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Authentication failed. Please check your credentials.';
+
+      if (message.toLowerCase().includes('invalid login credentials')) {
+        setErrorMessage('Invalid email or password. Please verify your salon credentials.');
+      } else if (message.toLowerCase().includes('email not confirmed')) {
+        setErrorMessage('Email address has not been confirmed in Supabase yet.');
+      } else {
+        setErrorMessage(message);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleForgotPassword = (e: React.MouseEvent) => {
     e.preventDefault();
     setForgotPasswordMessage(
-      'Single-client security: A recovery link has been dispatched to the registered salon director inbox.'
+      'Single-client security: Contact your Supabase database administrator or reset your password directly from the Supabase Authentication panel.'
     );
     setTimeout(() => {
       setForgotPasswordMessage(null);
-    }, 5000);
+    }, 6000);
   };
 
   return (
@@ -51,7 +87,7 @@ export const LoginPage: React.FC = () => {
             <Sparkles className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="font-serif tracking-widest text-2xl font-bold uppercase tracking-wider text-white">
+            <h1 className="font-serif tracking-widest text-2xl font-bold uppercase text-white">
               LUMIÈRE
             </h1>
             <p className="text-xs tracking-widest text-salon-300 font-semibold uppercase">
@@ -99,7 +135,7 @@ export const LoginPage: React.FC = () => {
 
         {/* Bottom Salon Status Note */}
         <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 pt-6 border-t border-charcoal-800">
-          <span>&copy; {new Date().getFullYear()} {mockSalonOwner.salonName}</span>
+          <span>&copy; {new Date().getFullYear()} {import.meta.env.VITE_APP_NAME || 'LUMIÈRE Studio'}</span>
           <span className="text-salon-400/80 font-medium">StyleSalon CRM Engine</span>
         </div>
       </div>
@@ -131,9 +167,27 @@ export const LoginPage: React.FC = () => {
               Welcome Back
             </h2>
             <p className="text-sm text-slate-500">
-              Login to your salon CRM to manage clients, campaigns, and WhatsApp conversations.
+              Login to your salon CRM with your Supabase authenticated credentials.
             </p>
           </div>
+
+          {/* Environment Warning if Supabase URL / Key is not configured */}
+          {!isConfigured && (
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-2.5">
+              <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <span>
+                Supabase environment variables are missing. Please verify that your local <code>.env</code> file contains <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code>.
+              </span>
+            </div>
+          )}
+
+          {/* Error Message Toast */}
+          {errorMessage && (
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start gap-2.5">
+              <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
 
           {/* Notification / Toast for Forgot Password */}
           {forgotPasswordMessage && (
@@ -154,6 +208,7 @@ export const LoginPage: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="owner@your-salon.com"
               leftIcon={<Mail className="h-4 w-4" />}
+              disabled={isLoading}
             />
 
             <Input
@@ -163,8 +218,9 @@ export const LoginPage: React.FC = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your private password"
+              placeholder="Enter your password"
               leftIcon={<Lock className="h-4 w-4" />}
+              disabled={isLoading}
               rightIcon={
                 <button
                   type="button"
@@ -209,7 +265,7 @@ export const LoginPage: React.FC = () => {
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Signing In...
+                  Authenticating...
                 </span>
               ) : (
                 'Sign In to Dashboard'

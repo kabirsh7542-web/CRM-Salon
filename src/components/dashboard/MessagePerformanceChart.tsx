@@ -1,9 +1,15 @@
 import React from 'react';
 import { Card } from '../common/Card';
-import { mockMessageFunnel } from '../../lib/mockData';
-import { CheckCheck, MessageSquare, Send, Eye, TrendingUp, Info } from 'lucide-react';
+import { CheckCheck, MessageSquare, Send, Eye, Clock, Info } from 'lucide-react';
 
 export const MessagePerformanceChart: React.FC = () => {
+  const funnelSteps = [
+    { label: 'Sent', count: 0, rate: '0%', percentage: 0, color: '#8B5CF6' },
+    { label: 'Delivered', count: 0, rate: '0%', percentage: 0, color: '#0EA5E9' },
+    { label: 'Read', count: 0, rate: '0%', percentage: 0, color: '#F59E0B' },
+    { label: 'Client Replies', count: 0, rate: '0%', percentage: 0, color: '#10B981' },
+  ];
+
   return (
     <Card className="flex flex-col justify-between">
       {/* Chart Card Header */}
@@ -13,9 +19,9 @@ export const MessagePerformanceChart: React.FC = () => {
             <h3 className="text-base sm:text-lg font-bold text-slate-900">
               Message Performance & Funnel
             </h3>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
-              <TrendingUp className="h-3 w-3" />
-              96.5% Delivery
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 border border-amber-200">
+              <Clock className="h-3 w-3" />
+              WhatsApp Setup Pending
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -46,7 +52,7 @@ export const MessagePerformanceChart: React.FC = () => {
       {/* Funnel Progress Visualization */}
       <div className="py-6 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          {mockMessageFunnel.map((step) => {
+          {funnelSteps.map((step) => {
             let StepIcon = Send;
             if (step.label === 'Delivered') StepIcon = CheckCheck;
             if (step.label === 'Read') StepIcon = Eye;
@@ -100,27 +106,18 @@ export const MessagePerformanceChart: React.FC = () => {
         <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
           <div className="flex justify-between text-xs font-semibold text-slate-600">
             <span>Overall Conversion Flow</span>
-            <span className="text-salon-600 font-bold">47 Conversions (Replies)</span>
+            <span className="text-slate-400 font-medium">0 Conversions (Awaiting First Broadcast)</span>
           </div>
 
-          <div className="h-4 w-full flex rounded-full overflow-hidden shadow-inner bg-slate-200">
-            <div
-              style={{ width: '96.5%' }}
-              className="bg-gradient-to-r from-violet-500 to-sky-500 transition-all"
-              title="Delivered (96.5%)"
-            />
-            <div
-              style={{ width: '3.5%' }}
-              className="bg-rose-300"
-              title="Failed / Blocked (3.5%)"
-            />
+          <div className="h-3 w-full flex rounded-full overflow-hidden shadow-inner bg-slate-200">
+            <div style={{ width: '0%' }} className="bg-gradient-to-r from-violet-500 to-sky-500" />
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
             <span>Official WhatsApp Cloud API Channel</span>
             <span className="flex items-center gap-1">
               <Info className="h-3 w-3" />
-              Low opt-out rate (&lt;5%) maintains Tier-1 meta score
+              Webhooks will stream delivery and read status in Phase 3
             </span>
           </div>
         </div>
@@ -128,8 +125,8 @@ export const MessagePerformanceChart: React.FC = () => {
 
       {/* Footer Insight */}
       <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-slate-500">
-        <span>Campaign: <strong className="text-slate-800">Weekend Glow & Balayage Special</strong></span>
-        <span className="text-emerald-600 font-medium">98% recipient deliverability rate achieved</span>
+        <span>Campaign Channel: <strong className="text-slate-800">Not Dispatched</strong></span>
+        <span className="text-slate-400 font-normal">Connect WhatsApp Business credentials in Settings</span>
       </div>
     </Card>
   );

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card } from '../common/Card';
-import { mockRecentReplies } from '../../lib/mockData';
 import { MessageSquare, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -25,46 +24,26 @@ export const RecentRepliesList: React.FC = () => {
         </Link>
       </div>
 
-      <div className="divide-y divide-slate-100 mt-2">
-        {mockRecentReplies.map((reply) => (
-          <div
-            key={reply.id}
-            className="flex items-start gap-3.5 py-3.5 px-2 hover:bg-slate-50/70 rounded-xl transition-colors"
+      <div className="py-10 text-center space-y-3">
+        <div className="h-11 w-11 rounded-2xl bg-salon-50 text-salon-500 mx-auto flex items-center justify-center">
+          <MessageSquare className="h-5 w-5" />
+        </div>
+        <div className="max-w-xs mx-auto space-y-1">
+          <h4 className="text-sm font-bold text-slate-800">
+            No Client Messages Yet
+          </h4>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Inbound client messages and appointment inquiries from WhatsApp will stream directly into this feed in Phase 3.
+          </p>
+        </div>
+        <div className="pt-1">
+          <Link
+            to="/inbox"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold transition-colors"
           >
-            <div className="relative flex-shrink-0">
-              <img
-                src={reply.avatar}
-                alt={reply.customerName}
-                className="h-10 w-10 rounded-full object-cover ring-2 ring-slate-100"
-              />
-              {reply.unread && (
-                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-salon-500 ring-2 ring-white" />
-              )}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-slate-900 truncate">
-                  {reply.customerName}
-                </span>
-                <span className="text-[11px] font-medium text-slate-400 whitespace-nowrap">
-                  {reply.timestamp}
-                </span>
-              </div>
-
-              <p className="text-xs text-slate-600 line-clamp-2 mt-0.5 leading-relaxed">
-                "{reply.messagePreview}"
-              </p>
-
-              {reply.relatedCampaign && (
-                <div className="flex items-center gap-1 mt-1.5 text-[11px] text-salon-600 font-medium">
-                  <MessageSquare className="h-3 w-3" />
-                  <span className="truncate">Re: {reply.relatedCampaign}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+            Preview Inbox &rarr;
+          </Link>
+        </div>
       </div>
     </Card>
   );

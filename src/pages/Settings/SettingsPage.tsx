@@ -2,10 +2,20 @@ import React from 'react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { mockSalonOwner } from '../../lib/mockData';
 import { Sparkles, MessageCircle, Shield, Bell } from 'lucide-react';
+import { useAuth } from '../../contexts/useAuth';
 
 export const SettingsPage: React.FC = () => {
+  const { user, profile } = useAuth();
+
+  const ownerName =
+    profile?.full_name ||
+    user?.user_metadata?.full_name ||
+    'Salon Director';
+
+  const ownerEmail = user?.email || '';
+  const salonName = import.meta.env.VITE_APP_NAME || 'StyleSalon Studio';
+
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
@@ -30,10 +40,10 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Salon Studio Name" defaultValue={mockSalonOwner.salonName} />
-          <Input label="Studio Tagline" defaultValue={mockSalonOwner.salonTagline} />
-          <Input label="Owner / Lead Director" defaultValue={mockSalonOwner.name} />
-          <Input label="Direct Email" defaultValue={mockSalonOwner.email} />
+          <Input label="Salon Studio Name" defaultValue={salonName} />
+          <Input label="Studio Tagline" defaultValue="Private Luxury Salon Studio" />
+          <Input label="Owner / Lead Director" defaultValue={ownerName} />
+          <Input label="Direct Email" defaultValue={ownerEmail} disabled />
         </div>
 
         <div className="pt-2 flex justify-end">
@@ -51,7 +61,7 @@ export const SettingsPage: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base font-bold text-slate-900">WhatsApp Cloud API (Meta)</h3>
-            <p className="text-xs text-slate-500">Official business channel credentials (Phase 2)</p>
+            <p className="text-xs text-slate-500">Official business channel credentials (Phase 3)</p>
           </div>
         </div>
 
@@ -72,7 +82,7 @@ export const SettingsPage: React.FC = () => {
 
         <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-xs text-emerald-800 flex items-center gap-2">
           <Shield className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-          <span>Configured via secure environment variables (.env) during Phase 2 deployment.</span>
+          <span>Configured via secure environment variables (.env) during Phase 3 deployment.</span>
         </div>
       </Card>
 

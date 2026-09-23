@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Users,
   UserCheck,
@@ -16,10 +16,48 @@ import { CustomerSegments } from '../../components/dashboard/CustomerSegments';
 import { RecentCampaignsTable } from '../../components/dashboard/RecentCampaignsTable';
 import { RecentCustomersList } from '../../components/dashboard/RecentCustomersList';
 import { RecentRepliesList } from '../../components/dashboard/RecentRepliesList';
-import { mockSalonOwner, mockStats } from '../../lib/mockData';
 import { formatNumber } from '../../utils/formatters';
+import { customerService, type CustomerMetrics } from '../../services/customerService';
+import { useAuth } from '../../contexts/useAuth';
 
 export const DashboardPage: React.FC = () => {
+  const { user, profile } = useAuth();
+  const [metrics, setMetrics] = useState<CustomerMetrics | null>(null);
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    customerService
+      .fetchCustomerMetrics()
+      .then((data) => {
+        if (isMounted) {
+          setMetrics(data);
+          setLoadingMetrics(false);
+        }
+      })
+      .catch((err) => {
+        console.error('[DashboardPage] Error loading metrics from Supabase:', err);
+        if (isMounted) setLoadingMetrics(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const displayName =
+    profile?.full_name ||
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')[0] ||
+    'Salon Director';
+
+  const salonName = import.meta.env.VITE_APP_NAME || 'StyleSalon CRM';
+
+  const total = metrics?.totalCustomers ?? 0;
+  const active = metrics?.activeCustomers ?? 0;
+  const blockedOptOut = metrics?.blockedOptOut ?? 0;
+  const activeRate = total > 0 ? ((active / total) * 100).toFixed(1) : '100';
+
   return (
     <div className="space-y-8 pb-10">
       {/* Welcome Header */}
@@ -27,12 +65,12 @@ export const DashboardPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 tracking-tight">
-              Good Morning, {mockSalonOwner.name.split(' ')[0]}
+              Good Morning, {displayName}
             </h1>
             <span className="text-2xl">✨</span>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Here's what's happening at your salon today.
+            Live client directory data powered by Supabase PostgreSQL.
           </p>
         </div>
 
@@ -40,7 +78,7 @@ export const DashboardPage: React.FC = () => {
         <div className="flex items-center gap-2.5 self-start sm:self-auto bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-soft">
           <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
           <div className="text-xs">
-            <span className="font-semibold text-slate-800">{mockSalonOwner.salonName}</span>
+            <span className="font-semibold text-slate-800">{salonName}</span>
             <span className="text-slate-400 block text-[10px]">Private Salon Console</span>
           </div>
         </div>
@@ -48,74 +86,77 @@ export const DashboardPage: React.FC = () => {
 
       {/* 8 Statistic Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* Real Customer Metrics from Supabase */}
         <StatCard
           title="Total Customers"
-          value={formatNumber(mockStats.totalCustomers)}
-          subtitle="Registered salon client base"
-          badgeText="+12 this month"
+          value={loadingMetrics ? '—' : formatNumber(total)}
+          subtitle={total === 0 ? 'No clients registered yet' : 'Verified Supabase client database'}
+          badgeText={loadingMetrics ? 'Loading...' : `${total} Clients`}
           icon={Users}
           colorVariant="rose"
         />
 
         <StatCard
           title="Active Customers"
-          value={formatNumber(mockStats.activeCustomers)}
-          subtitle="95.5% active engagement rate"
-          badgeText="95.5%"
+          value={loadingMetrics ? '—' : formatNumber(active)}
+          subtitle={`${activeRate}% active engagement rate`}
+          badgeText={`${activeRate}%`}
           icon={UserCheck}
           colorVariant="mint"
         />
 
+        {/* WhatsApp Metrics clearly designated as pending Phase 3 WhatsApp integration */}
         <StatCard
           title="Messages Sent"
-          value={formatNumber(mockStats.messagesSent)}
-          subtitle="Total WhatsApp broadcasts"
-          badgeText="Oct Cycle"
+          value="0"
+          subtitle="WhatsApp broadcast channel pending"
+          badgeText="Phase 3"
           icon={Send}
           colorVariant="violet"
         />
 
         <StatCard
           title="Delivered"
-          value={formatNumber(mockStats.delivered)}
-          subtitle="96.5% delivery success"
-          badgeText="96.5%"
+          value="0%"
+          subtitle="Meta delivery webhooks pending"
+          badgeText="Phase 3"
           icon={CheckCheck}
           colorVariant="sky"
         />
 
         <StatCard
           title="Read"
-          value={formatNumber(mockStats.read)}
-          subtitle="77.6% read & opened"
-          badgeText="77.6%"
+          value="0%"
+          subtitle="WhatsApp read receipts pending"
+          badgeText="Phase 3"
           icon={Eye}
           colorVariant="amber"
         />
 
         <StatCard
           title="Replies"
-          value={formatNumber(mockStats.replies)}
-          subtitle="Inquiries & confirmations"
-          badgeText="47 replies"
+          value="0"
+          subtitle="Two-way client inbox pending"
+          badgeText="Phase 3"
           icon={MessageSquare}
           colorVariant="emerald"
         />
 
+        {/* Real Blocked / Opt-out count from Supabase */}
         <StatCard
           title="Blocked / Opt-out"
-          value={formatNumber(mockStats.blockedOptOut)}
-          subtitle="4.4% opt-out rate (Healthy)"
-          badgeText="Low Risk"
+          value={loadingMetrics ? '—' : formatNumber(blockedOptOut)}
+          subtitle={blockedOptOut === 0 ? 'Zero client restrictions' : `${blockedOptOut} clients opted out or blocked`}
+          badgeText={blockedOptOut > 0 ? 'Restricted' : '0 Active'}
           icon={UserX}
           colorVariant="coral"
         />
 
         <StatCard
           title="Last Campaign"
-          value="98% Deliv."
-          subtitle="Weekend Glow & Balayage Special"
-          badgeText="High CTR"
+          value="Pending"
+          subtitle="Connect WhatsApp WABA in Phase 3"
+          badgeText="Phase 3"
           icon={Sparkles}
           colorVariant="indigo"
         />
